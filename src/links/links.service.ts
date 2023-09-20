@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException, Param, ParseUUIDPipe } from '@nestjs/common';
 import { CreateLinkDto } from './dto/create-link.dto';
 import { UpdateLinkDto } from './dto/update-link.dto';
 import { Repository } from 'typeorm';
@@ -27,19 +27,33 @@ export class LinksService {
   }
 
   findAll() {
-    return `This action returns all links`;
+    return this.linkRepository.find({})
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} link`;
+  findOne( @Param('id', ParseUUIDPipe) id: string) {
+    return this.linkRepository.findOneBy({ 'idLink': id })
   }
 
-  update(id: number, updateLinkDto: UpdateLinkDto) {
-    return `This action updates a #${id} link`;
+  async update(id: string, updateLinkDto: UpdateLinkDto) {
+    
+    const row = await this.linkRepository.preload({
+      'idLink': id,
+      ...updateLinkDto
+    })
+
+    if ( !row ) throw new NotFoundException(`Link with idLink: ${id} not found`)
+
+    try{
+      return this.linkRepository.save(row)
+    }
+    catch(error){
+      this.handleDBExceptions(error)
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} link`;
+  async remove( @Param('id', ParseUUIDPipe) id: string) {
+    const row = await this.findOne(id)
+    await this.linkRepository.remove(row)
   }
 
   private handleDBExceptions( error: any ) {

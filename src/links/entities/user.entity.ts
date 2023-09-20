@@ -2,23 +2,23 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { userLink } from "./userLink.entity";
 
 @Entity()
-export class Link {
+export class User{
     @PrimaryGeneratedColumn('uuid')
-    idLink: string
+    userID: string
+
+    @Column({
+        type: 'varchar',
+        unique: true,
+    })
+    name: string
 
     @Column('varchar')
-    image: string
-
-    @Column('varchar')
-    label: string
-
-    @Column('varchar')
-    link: string
+    perfilImage: string
 
     @OneToMany(
         ()=> userLink,
-        (userlink) => userlink.linkID,
+        (userlink) => userlink.userID,
         { cascade: true }
     )
-    users : userLink
+    links : userLink    
 }

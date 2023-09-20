@@ -12,4 +12,10 @@ export class CreateLinkDto {
     @IsString()
     @IsNotEmpty()
     link : string
+
+    @IsString()
+    @IsNotEmpty()
+    userID: string
+
 }
+
