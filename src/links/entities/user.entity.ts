@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { userLink } from "./userLink.entity";
+import { UserLink } from "./userLink.entity";
+
 
 @Entity()
 export class User{
@@ -16,9 +17,9 @@ export class User{
     perfilImage: string
 
     @OneToMany(
-        ()=> userLink,
-        (userlink) => userlink.userID,
+        ()=> UserLink,
+        (link) => link.userID,
         { cascade: true }
     )
-    links : userLink    
+     link : UserLink
 }

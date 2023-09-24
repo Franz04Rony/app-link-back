@@ -1,21 +1,27 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm"
-import { Link } from "./link.entity"
-import { User } from "./user.entity"
+import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Link, User } from "./";
+import { IsString } from "class-validator";
 
 @Entity()
-export class userLink{
+export class UserLink{
     @PrimaryGeneratedColumn('uuid')
     id: string
 
-    @ManyToOne(
-        ()=> Link,
-        (link) => link.users
-    )
-    linkID: Link
+    @Column()
+    userRef: string
 
+    @Column()
+    idRef: string
+    
     @ManyToOne(
         ()=> User,
-        (user) => user.links
+        (user) => user.link
     )
-    userID: User
+    userID : User
+
+    @OneToOne(
+        () => Link,
+        (link) => link.user
+    )
+    idLink : Link
 }

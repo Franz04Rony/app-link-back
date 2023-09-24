@@ -4,6 +4,8 @@ import { UpdateLinkDto } from './dto/update-link.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Link } from './entities/link.entity';
+import { UserLink } from './entities/userLink.entity';
+import { CreateUserLinkDto } from './dto/create-userLink.dto';
 
 @Injectable()
 export class LinksService {
@@ -12,14 +14,25 @@ export class LinksService {
  
   constructor(
     @InjectRepository(Link)
-    private readonly linkRepository: Repository<Link>
+    private readonly linkRepository: Repository<Link>,
+    
+    @InjectRepository(UserLink)
+    private readonly userLinkRepository: Repository<UserLink>
   ){}
 
   async create(createLinkDto: CreateLinkDto) {
     try{
+
       const link = this.linkRepository.create(createLinkDto)
       await this.linkRepository.save( link )
-      return link
+
+      const userLink = this.userLinkRepository.create({
+        userRef: createLinkDto.userID,
+        idRef: link.idLink
+      })
+      await this.userLinkRepository.save(userLink)
+
+      return userLink
     }
     catch (error) {
       this.handleDBExceptions(error)

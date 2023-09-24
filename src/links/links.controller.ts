@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from
 import { LinksService } from './links.service';
 import { CreateLinkDto } from './dto/create-link.dto';
 import { UpdateLinkDto } from './dto/update-link.dto';
+import { CreateUserLinkDto } from './dto/create-userLink.dto';
 
 @Controller('links')
 export class LinksController {
