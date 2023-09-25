@@ -1,5 +1,5 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { userLink } from "./userLink.entity";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { User } from "./user.entity";
 
 @Entity()
 export class Link {
@@ -15,10 +15,9 @@ export class Link {
     @Column('varchar')
     link: string
 
-    @OneToMany(
-        ()=> userLink,
-        (userlink) => userlink.linkID,
-        { cascade: true }
+    @ManyToOne(
+        ()=> User,
+        (user) => user.links
     )
-    users : userLink
+    user : User
 }
