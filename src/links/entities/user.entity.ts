@@ -18,7 +18,7 @@ export class User{
     @OneToMany(
         ()=> Link,
         (link) => link.user,
-        { cascade: true }
+        { cascade: true, eager: true }
     )
     links : Link[]
 }
