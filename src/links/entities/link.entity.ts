@@ -17,7 +17,8 @@ export class Link {
 
     @ManyToOne(
         ()=> User,
-        (user) => user.links
+        (user) => user.links,
+        {onDelete: "CASCADE"}
     )
     user : User
 }

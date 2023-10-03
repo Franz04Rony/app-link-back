@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, InternalServerErrorException, Logger, 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 import { User, Link } from 'src/links/entities';
 // import { CreateLinkDto } from 'src/links/dto/create-link.dto';
@@ -16,7 +16,8 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Link)
-    private readonly linkRepository: Repository<Link> 
+    private readonly linkRepository: Repository<Link>,
+    private readonly dataSource: DataSource
 
     ){}
 
@@ -50,16 +51,46 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
+    
+    const {links, ...toUpdate} = updateUserDto
+
+
     const row = await this.userRepository.preload({
       'userID' : id,
-      ...updateUserDto
+      ...toUpdate
     })
     if (!row) throw new NotFoundException(`User with userID: ${id} not found`)
 
+    // Create query runner
+    const queryRunner = this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+
     try{
-      return this.userRepository.save(row)
+
+      if(links) {
+        await queryRunner.manager.delete( Link, {user: { userID: id} })
+        
+         row.links = links.map( link => this.linkRepository.create({
+          'image': link.image,
+          'label': link.label,
+          'link' : link.link, 
+        }))
+     
+      } else {
+        row.links = await this.linkRepository.findBy({user: {userID:id}})
+      }
+      await queryRunner.manager.save( row )
+
+      await queryRunner.commitTransaction()
+      await queryRunner.release()
+
+      return row
     }
-    catch(error) { this.handleDBExceptions (error)}
+    catch(error) { 
+      await queryRunner.rollbackTransaction()
+      await queryRunner.release()
+      this.handleDBExceptions (error)}
   }
 
   async remove(id: string) {
@@ -75,5 +106,16 @@ export class UsersService {
     // console.log(error)
     throw new InternalServerErrorException('Unexpected error, check server logs');
 
+  }
+
+  async deleteAllUsers() {
+    const query = this.userRepository.createQueryBuilder('users')
+
+    try{
+      return await query
+        .delete()
+        .where({})
+        .execute()
+    } catch(error){this.handleDBExceptions(error)}
   }
 }
