@@ -4,6 +4,7 @@
 
 /mysql-data
 .env
+/static/linkImage
 
 # Logs
 logs

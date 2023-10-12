@@ -25,7 +25,7 @@ export class FilesController {
 
   @Post('links')
   @UseInterceptors(FileInterceptor('file',{
-    // fileFilter: fileFilter,
+    fileFilter: fileFilter,
     storage: diskStorage({
       destination: './static/linkImage',
       filename: fileNamer
