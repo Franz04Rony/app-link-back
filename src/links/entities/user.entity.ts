@@ -12,6 +12,22 @@ export class User{
     })
     name: string
 
+    @Column('varchar', {
+        select: false
+    })
+    password: string;
+
+    @Column('boolean',{
+        default: true
+    })
+    isActive: boolean;
+
+    @Column('set', {
+        enum: ['user', 'ghost', 'admin'],
+        default: ['user', 'ghost']
+    })
+    roles: string[]
+
     @Column('varchar')
     perfilImage: string
 
@@ -21,4 +37,6 @@ export class User{
         { cascade: true, eager: true }
     )
     links : Link[]
+
+
 }

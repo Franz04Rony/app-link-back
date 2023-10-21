@@ -1,10 +1,14 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
+import * as bcrypt from "bcrypt";
 
 import { User, Link } from 'src/links/entities';
+import { LoginUserDto } from './dto';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { JwtService } from '@nestjs/jwt';
 // import { CreateLinkDto } from 'src/links/dto/create-link.dto';
 
 @Injectable()
@@ -17,15 +21,18 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Link)
     private readonly linkRepository: Repository<Link>,
-    private readonly dataSource: DataSource
+    private readonly dataSource: DataSource,
+    private readonly jwtService: JwtService,
 
     ){}
 
   async create(createUserDto: CreateUserDto) {
+
     try{
-      const {links = [], ...linkDetails } = createUserDto
+      const {links = [], password, ...linkDetails } = createUserDto
       const user = this.userRepository.create({
         ...linkDetails,
+        password: bcrypt.hashSync(password, 10),
         links: links.map( link => this.linkRepository.create({
           'image': link.image,
           'label': link.label,
@@ -33,10 +40,36 @@ export class UsersService {
         }))
       })
       await this.userRepository.save(user)
+      delete user.password
       return user
     }
     catch (error){ this.handleDBExceptions(error) }
   }
+
+  async login(loginUserDto: LoginUserDto) {
+    const { password, name } = loginUserDto
+    const user = await this.userRepository.findOne({
+      where: {name},
+      select: {name: true, password: true, userID: true}
+    })
+
+    if( !user )
+      throw new UnauthorizedException('Credentials are not valid (email)')
+
+    if ( !bcrypt.compareSync(password, user.password) )
+      throw new UnauthorizedException('Credentials are not valid (password)')
+
+    return {
+      ...user,
+      token: this.getJwtToken({userID: user.userID})
+    }
+  }
+
+  private getJwtToken( payload: JwtPayload ){
+    const token = this.jwtService.sign( payload );
+    return token
+  }
+
 
   findAll() {
     return this.userRepository.find({

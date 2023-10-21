@@ -1,20 +1,41 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto, UpdateUserDto, LoginUserDto } from './dto';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser, getRawHeaders } from 'src/auth/decorators';
+import { User } from 'src/links/entities';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
+  @Post('register')
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  @Post('login')
+  loginUser(@Body() loginUserDto: LoginUserDto) {
+    return this.usersService.login(loginUserDto)
   }
 
   @Get()
   findAll() {
     return this.usersService.findAll();
+  }
+
+  @Get('private')
+  @UseGuards(AuthGuard())
+  testingPrivateRoute(
+    @GetUser() user: User,
+    @GetUser("name") userName: User,
+    @getRawHeaders() rawHeaders:string[]
+  ){
+    return { 
+      user,
+      userName,
+      rawHeaders
+    }
   }
 
   @Get(':id')
@@ -31,4 +52,7 @@ export class UsersController {
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
+
+  
+
 }
