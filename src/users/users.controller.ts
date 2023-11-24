@@ -29,7 +29,7 @@ export class UsersController {
   testingPrivateRoute(
     @GetUser() user: User,
     @GetUser("name") userName: User,
-    @getRawHeaders() rawHeaders:string[]
+    @getRawHeaders() rawHeaders:string[],
   ){
     return { 
       user,
@@ -52,7 +52,5 @@ export class UsersController {
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
-
-  
 
 }

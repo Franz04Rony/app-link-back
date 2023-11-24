@@ -1,12 +1,19 @@
 # App Link Backend
 
 ##  Install
+If you don't have yarn installed, use:
 ```
 yarn install
 ```
+If you don't have Nest installed, use:
+```
+npm i -g @nestjs/cli
+```
+To get up the docker container you have to get running the docker daemon. Then use:
 ```
 docker compose up -d
 ```
+Run the project:
 ```
 yarn start:dev
 ```
